@@ -16,6 +16,7 @@ For Astro 7 + Tailwind 4. Source components, no build step: the site and the app
 | `components/Footer.astro` | group name, affiliation, FSv and ČVUT logos, navigation, contact |
 | `components/ConEx.astro`, `PostalAddress.astro`, `ContactRow.astro`, `InstitutionLogos.astro`, `Icon.astro` | parts of the above, also used by the site's pages |
 | `conex.css` | colours (light and dark), font, motion tokens, focus ring, view transitions, no-JS fallbacks |
+| `@conex-ctu/ui/build` | `gitBuild()`: the commit and build time for the footer's build line (build time only) |
 | `@conex-ctu/ui` (index) | languages and addresses (`localePath`, `alternatePath`, `langFromPath`), navigation items, links, default contact, the header/footer texts (`shellStrings`) |
 
 Not in it (yet): form inputs, charts and other app components. They stay in the apps until a second app needs them.
@@ -87,7 +88,12 @@ Props worth knowing:
 - `Header`: `lang`, `alternates` (the other language's address when it is not the prefix swap, e.g. on a 404 page),
   `themeToggle` (default `true`).
 - `ConexHead`: `theme` `'auto'` (stored choice or system; the site) or `'light'` (apps without a dark theme).
-- `Footer`: `lang`, `contact` (default: the group's PI from `lib/site.ts`; the site passes its synced people entry).
+- `Footer`: `lang`, `contact` (default: the group's PI from `lib/site.ts`; the site passes its synced people entry),
+  `build`: a small line at the bottom, "Build b9aeeb8 · 18 Nov 2026" / "Verze b9aeeb8 · 18. 11. 2026", linked to the
+  commit (`rel="nofollow"`), the full hash and the build time on hover. Get it at build time in the layout's
+  frontmatter: `import { gitBuild } from '@conex-ctu/ui/build'; … <Footer build={gitBuild('conex-ctu/<repo>')} />`
+  (`GITHUB_SHA` in GitHub Actions, else `git rev-parse HEAD`; outside a checkout, no line). Node only: never import
+  `@conex-ctu/ui/build` into browser code.
 - `LangSwitch` marks itself `data-lang-switch`: an app that carries state across the switch (e.g. a filled form)
   listens for clicks on `[data-lang-switch] a`.
 

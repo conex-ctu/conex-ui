@@ -5,6 +5,7 @@ import AppBar from '../../src/components/AppBar.astro';
 import ConexHead from '../../src/components/ConexHead.astro';
 import Footer from '../../src/components/Footer.astro';
 import Header from '../../src/components/Header.astro';
+import { gitBuild } from '../../src/lib/build';
 import { langFromPath, localePath } from '../../src/lib/i18n';
 import { shellT } from '../../src/lib/strings';
 
@@ -46,6 +47,6 @@ const appHome = localePath(lang, 'apps/example/');
     <main id="main" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
       <slot />
     </main>
-    <Footer />
+    <Footer build={gitBuild('conex-ctu/conex-ui')} />
   </body>
 </html>

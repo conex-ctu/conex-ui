@@ -1,10 +1,13 @@
 ---
 // The ConEx site footer: group name and affiliation with the FSv and ČVUT logos, navigation, contact.
-// `contact` defaults to the group's PI (lib/site.ts); the site passes the synced people entry instead.
+// `contact` defaults to the group's PI (lib/site.ts); the site passes the synced people entry instead. `build`
+// (from gitBuild in @conex-ctu/ui/build) adds a small line at the bottom: "Build b9aeeb8 · 18 Nov 2026", linked to the
+// commit, the full hash and the build time on hover.
 import ConEx from './ConEx.astro';
 import ContactRow from './ContactRow.astro';
 import InstitutionLogos from './InstitutionLogos.astro';
 import PostalAddress from './PostalAddress.astro';
+import type { BuildInfo } from '../lib/build';
 import { langFromPath, localePath, type Lang } from '../lib/i18n';
 import { externalLinkAttrs } from '../lib/links';
 import { defaultContact, externalLinks, navItems, type Contact } from '../lib/site';
@@ -13,6 +16,7 @@ import { shellT } from '../lib/strings';
 interface Props {
   lang?: Lang;
   contact?: Contact;
+  build?: BuildInfo | undefined;
 }
 
 const { lang = langFromPath(Astro.url.pathname) } = Astro.props;
@@ -25,6 +29,20 @@ const affiliation = [
   { href: externalLinks.cvut[lang], label: t('org.university') },
 ];
 const link = 'hover:text-primary hover:underline';
+
+const { build } = Astro.props;
+const locale = lang === 'cs' ? 'cs-CZ' : 'en-GB';
+const buildText = build
+  ? `${t('footer.build')} ${build.sha.slice(0, 7)} · ${build.date.toLocaleDateString(locale, {
+      day: 'numeric',
+      month: lang === 'cs' ? 'numeric' : 'short',
+      year: 'numeric',
+      timeZone: 'Europe/Prague',
+    })}`
+  : '';
+const buildTitle = build
+  ? `${build.sha} · ${build.date.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Prague' })}`
+  : '';
 ---
 
 <footer class="mt-16 border-t border-border bg-muted text-sm text-muted-foreground">
@@ -98,4 +116,19 @@ const link = 'hover:text-primary hover:underline';
       </ul>
     </section>
   </div>
+  {
+    build && (
+      <div class="border-t border-border">
+        <p class="mx-auto max-w-7xl px-4 py-4 text-xs sm:px-6 lg:px-8">
+          {build.url ? (
+            <a href={build.url} target="_blank" rel="noopener nofollow" title={buildTitle} class={link}>
+              {buildText}
+            </a>
+          ) : (
+            <span title={buildTitle}>{buildText}</span>
+          )}
+        </p>
+      </div>
+    )
+  }
 </footer>

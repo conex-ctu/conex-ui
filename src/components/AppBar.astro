@@ -1,0 +1,46 @@
+---
+// The bar of a lab app, under the site header: the app's name (linking to its start page), its own links (e.g. the
+// guide) and an optional `actions` slot for app buttons. Not sticky: the site header above it is.
+import { langFromPath, type Lang } from '../lib/i18n';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  /** The app's name in the page language. */
+  title: string;
+  /** The app's start page in the page language. */
+  href: string;
+  links?: { href: string; label: string }[];
+  lang?: Lang;
+}
+
+const { title, href, links = [], lang = langFromPath(Astro.url.pathname) } = Astro.props;
+const t = shellT(lang);
+const here = Astro.url.pathname;
+---
+
+<div class="app-bar border-b border-border bg-muted">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2.5 sm:px-6 lg:px-8">
+    <a href={href} aria-current={here === href ? 'page' : undefined} class="min-w-0 font-semibold text-foreground hover:text-primary">
+      {title}
+    </a>
+    {
+      (links.length > 0 || Astro.slots.has('actions')) && (
+        <nav aria-label={t('a11y.appNav')} class="ml-auto flex items-center gap-x-4 text-sm">
+          <slot name="actions" />
+          {links.map((l) => (
+            <a
+              href={l.href}
+              aria-current={here === l.href ? 'page' : undefined}
+              class:list={[
+                'decoration-2 underline-offset-[6px] hover:text-primary',
+                here === l.href ? 'text-foreground underline decoration-primary' : 'text-muted-foreground',
+              ]}
+            >
+              {l.label}
+            </a>
+          ))}
+        </nav>
+      )
+    }
+  </div>
+</div>

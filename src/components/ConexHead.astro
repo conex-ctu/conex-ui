@@ -1,0 +1,49 @@
+---
+// The ConEx part of <head>: Figtree (self-hosted), the favicon of conex.fsv.cvut.cz and the theme script, which sets
+// data-theme on <html> before the first paint (light/dark: the visitor's choice from the theme toggle, else the
+// system's). Apps without a dark theme pass `theme="light"`. Put it inside <head>; charset, viewport, title and
+// meta tags stay with the page.
+import '@fontsource-variable/figtree/wght.css';
+import '@fontsource-variable/figtree/wght-italic.css';
+import figtreeLatin from '@fontsource-variable/figtree/files/figtree-latin-wght-normal.woff2?url';
+
+interface Props {
+  /** 'auto': follow the stored choice or the system (the site). 'light': always light. */
+  theme?: 'auto' | 'light';
+  /** Favicon base; the site's root by default (the apps live on the same host). */
+  faviconBase?: string;
+}
+
+const { theme = 'auto', faviconBase = '/' } = Astro.props;
+---
+
+<link rel="icon" type="image/svg+xml" href={`${faviconBase}favicon.svg`} />
+<link rel="icon" href={`${faviconBase}favicon.ico`} />
+<!-- The most used font file, so text usually renders in Figtree from the first paint. -->
+<link rel="preload" href={figtreeLatin} as="font" type="font/woff2" crossorigin />
+{
+  theme === 'light' ? (
+    <script is:inline>document.documentElement.dataset.theme = 'light';</script>
+  ) : (
+    <script is:inline>
+      // Set the theme before first paint to avoid a flash of the wrong colours.
+      (() => {
+        const root = document.documentElement;
+        const mq = window.matchMedia('(prefers-color-scheme: dark)');
+        const stored = () => {
+          try {
+            const v = localStorage.getItem('theme');
+            return v === 'light' || v === 'dark' ? v : null;
+          } catch {
+            return null;
+          }
+        };
+        const apply = () => {
+          root.dataset.theme = stored() ?? (mq.matches ? 'dark' : 'light');
+        };
+        apply();
+        mq.addEventListener('change', apply);
+      })();
+    </script>
+  )
+}

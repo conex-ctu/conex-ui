@@ -1,0 +1,122 @@
+---
+// The ConEx site header: wordmark (home), main navigation, CTU / CTU FCE links, language switch and theme toggle.
+// The language comes from the page's address unless given; see LangSwitch for `alternates`. Apps without a dark
+// theme pass `themeToggle={false}`.
+import ConEx from './ConEx.astro';
+import Icon from './Icon.astro';
+import InstitutionLogos from './InstitutionLogos.astro';
+import LangSwitch from './LangSwitch.astro';
+import Nav from './Nav.astro';
+import ThemeToggle from './ThemeToggle.astro';
+import { langFromPath, localePath, type Lang } from '../lib/i18n';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  lang?: Lang;
+  alternates?: Partial<Record<Lang, string>>;
+  themeToggle?: boolean;
+}
+
+const { lang = langFromPath(Astro.url.pathname), alternates, themeToggle = true } = Astro.props;
+const t = shellT(lang);
+---
+
+<!--
+  One row at every width. From lg the nav sits inline; below lg it moves into a
+  menu panel opened by the hamburger button. Without JavaScript the button is
+  hidden and the panel is always shown (see conex.css).
+-->
+<header
+  class="site-header sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80"
+>
+  <div class="mx-auto flex max-w-7xl items-center gap-x-3 px-4 py-4 sm:gap-x-4 sm:px-6 lg:gap-x-8 lg:px-8">
+    <a href={localePath(lang)} aria-label={t('a11y.home')} class="shrink-0 text-2xl font-bold tracking-tight text-foreground">
+      <ConEx />
+    </a>
+    <Nav class="hidden lg:block" lang={lang} />
+    <div class="ml-auto flex shrink-0 items-center gap-2 sm:gap-4">
+      {/* On phones these move into the menu panel (below). */}
+      <InstitutionLogos class="hidden sm:flex" lang={lang} />
+      <LangSwitch lang={lang} alternates={alternates} />
+      {themeToggle && <ThemeToggle lang={lang} />}
+      <button
+        type="button"
+        data-menu-button
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        aria-label={t('a11y.menu')}
+        class="group relative z-50 grid size-9 shrink-0 cursor-pointer place-items-center rounded text-muted-foreground hover:text-foreground lg:hidden"
+      >
+        {/* Both icons share one grid cell and cross-fade with a quarter turn. */}
+        <Icon
+          name="menu"
+          size={24}
+          class="col-start-1 row-start-1 transition-[opacity,rotate,scale] duration-(--duration-reveal) ease-out-soft group-aria-expanded:scale-75 group-aria-expanded:rotate-90 group-aria-expanded:opacity-0"
+        />
+        <Icon
+          name="x"
+          size={24}
+          class="col-start-1 row-start-1 scale-75 -rotate-90 opacity-0 transition-[opacity,rotate,scale] duration-(--duration-reveal) ease-out-soft group-aria-expanded:scale-100 group-aria-expanded:rotate-0 group-aria-expanded:opacity-100"
+        />
+      </button>
+    </div>
+  </div>
+
+  {/*
+    The clip slot hangs below the header; the panel inside slides down out of
+    it, so it appears from behind the header's bottom edge. pb-6 leaves room for
+    the shadow. Closed, the panel is visibility: hidden (after the slide-up), so
+    it takes no focus and no clicks; the slot itself never takes clicks.
+  */}
+  <div data-mobile-menu class="pointer-events-none absolute top-full right-0 left-0 overflow-hidden pb-6 lg:hidden!">
+    <div
+      id="mobile-menu"
+      data-menu-panel
+      class="pointer-events-auto invisible w-full -translate-y-full border-b border-border bg-background/95 opacity-0 shadow-lg transition-[translate,opacity,visibility] duration-(--duration-reveal) ease-out-soft data-open:visible data-open:translate-y-0 data-open:opacity-100"
+    >
+      <div class="mx-auto max-w-7xl px-4 sm:px-6">
+        <Nav layout="stack" lang={lang} />
+        <InstitutionLogos class="flex border-t border-border py-3 sm:hidden" lang={lang} />
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>('[data-menu-button]');
+  const panel = document.querySelector<HTMLElement>('[data-menu-panel]');
+
+  if (button && panel) {
+    const isOpen = (): boolean => button.getAttribute('aria-expanded') === 'true';
+
+    // aria-expanded drives the icon animation (group-aria-expanded: in the
+    // markup); data-open slides the panel in.
+    const setOpen = (open: boolean): void => {
+      button.setAttribute('aria-expanded', String(open));
+      panel.toggleAttribute('data-open', open);
+    };
+
+    button.addEventListener('click', () => setOpen(!isOpen()));
+
+    document.addEventListener('keydown', (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      setOpen(false);
+      button.focus();
+    });
+
+    document.addEventListener('click', (event: MouseEvent) => {
+      const target = event.target;
+      if (!isOpen() || !(target instanceof Node)) return;
+      if (!panel.contains(target) && !button.contains(target)) setOpen(false);
+    });
+
+    panel.addEventListener('click', (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('a')) setOpen(false);
+    });
+
+    // Widening the window to the desktop layout hides the panel; reset the state too.
+    window.matchMedia('(min-width: 64rem)').addEventListener('change', (event: MediaQueryListEvent) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+</script>

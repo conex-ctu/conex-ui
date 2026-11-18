@@ -1,0 +1,47 @@
+---
+// "EN | CS": links to the same page in the other language. By default the other language's address is this page's
+// with the language prefix swapped (/apps/x/ ↔ /cs/apps/x/); `alternates` overrides it per language (e.g. the 404
+// page points to the home pages). Apps that carry state across the switch can listen for clicks on
+// `[data-lang-switch] a`.
+import { alternatePath, langFromPath, langs, languages, type Lang } from '../lib/i18n';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  lang?: Lang;
+  alternates?: Partial<Record<Lang, string>>;
+}
+
+const { lang: current = langFromPath(Astro.url.pathname), alternates = {} } = Astro.props;
+const t = shellT(current);
+---
+
+<nav aria-label={t('a11y.langSwitch')} data-lang-switch>
+  <ul class="flex items-center gap-1 text-sm">
+    {
+      langs.map((lang, i) => (
+        <li class="flex items-center gap-1">
+          {i > 0 && <span class="text-border" aria-hidden="true">|</span>}
+          {lang === current ? (
+            <span
+              aria-current="true"
+              class="text-foreground underline decoration-primary decoration-2 underline-offset-4"
+              title={languages[lang]}
+            >
+              {lang.toUpperCase()}
+            </span>
+          ) : (
+            <a
+              href={alternates[lang] ?? alternatePath(Astro.url.pathname, lang)}
+              hreflang={lang}
+              lang={lang}
+              title={languages[lang]}
+              class="text-muted-foreground hover:text-primary hover:underline"
+            >
+              {lang.toUpperCase()}
+            </a>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</nav>

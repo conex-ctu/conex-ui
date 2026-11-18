@@ -1,0 +1,51 @@
+---
+// A page of the demo: the site frame, optionally with an app bar (as a lab app would use it).
+import '../styles/demo.css';
+import AppBar from '../../src/components/AppBar.astro';
+import ConexHead from '../../src/components/ConexHead.astro';
+import Footer from '../../src/components/Footer.astro';
+import Header from '../../src/components/Header.astro';
+import { langFromPath, localePath } from '../../src/lib/i18n';
+import { shellT } from '../../src/lib/strings';
+
+interface Props {
+  title: string;
+  /** Show the page as an app: light theme only, app bar under the header. */
+  app?: boolean;
+}
+
+const { title, app = false } = Astro.props;
+const lang = langFromPath(Astro.url.pathname);
+const t = shellT(lang);
+const appHome = localePath(lang, 'apps/example/');
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} | {t('site.name')}</title>
+    <ConexHead theme={app ? 'light' : 'auto'} />
+  </head>
+  <body class="flex min-h-screen flex-col bg-background font-sans text-foreground antialiased">
+    <Header themeToggle={!app} />
+    {
+      app && (
+        <AppBar
+          title={lang === 'cs' ? 'Ukázková aplikace' : 'Example app'}
+          href={appHome}
+          links={[{ href: `${appHome}guide/`, label: lang === 'cs' ? 'O aplikaci a návod' : 'About and guide' }]}
+        >
+          <button slot="actions" type="button" class="text-muted-foreground hover:text-primary">
+            {lang === 'cs' ? 'Akce' : 'Action'}
+          </button>
+        </AppBar>
+      )
+    }
+    <main id="main" class="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6 lg:px-8">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>

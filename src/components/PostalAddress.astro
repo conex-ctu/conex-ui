@@ -1,0 +1,20 @@
+---
+// Faculty postal address, optionally with a room. Used in the footer and on the site's person pages.
+import { langFromPath, type Lang } from '../lib/i18n';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  room?: string | undefined;
+  lang?: Lang;
+}
+
+const { room, lang = langFromPath(Astro.url.pathname) } = Astro.props;
+const t = shellT(lang);
+---
+
+<address class="not-italic">
+  {room && (<>{`${t('person.room')} ${room}`}<br /></>)}
+  {t('address.street')}<br />
+  {t('address.postalCode')} {t('address.city')}
+  {t('address.country') && (<><br />{t('address.country')}</>)}
+</address>

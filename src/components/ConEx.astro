@@ -1,0 +1,22 @@
+---
+// The group's wordmark: "Con" in the foreground colour, "Ex" in primary. Both are
+// set explicitly, so the wordmark keeps its colours inside muted text. Without `text`
+// it renders the bare wordmark; with `text` (e.g. a translated string such as
+// "Výzkumná skupina ConEx") every "ConEx" in it becomes the wordmark.
+// Plain-text contexts (<title>, meta, aria-label) keep the string as it is.
+interface Props {
+  text?: string;
+}
+
+const { text = 'ConEx' } = Astro.props;
+const parts = text.split('ConEx');
+---
+
+{
+  parts.map((part, i) => (
+    <>
+      {part}
+      {i < parts.length - 1 && <span class="whitespace-nowrap"><span class="text-foreground">Con</span><span class="text-primary">Ex</span></span>}
+    </>
+  ))
+}

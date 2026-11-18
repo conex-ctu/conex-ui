@@ -1,0 +1,84 @@
+---
+// ČVUT and FSv identifiers, linked to their sites.
+// - header: short text links ("CTU", "CTU FCE" / "ČVUT", "ČVUT FSv"), styled like the nav.
+// - footer: the official logos, large enough (h-14, 56px) for their three-line
+//   lettering to stay legible.
+// Logo files live in src/assets/logos/: `{key}-{lang}.svg` (black, light theme) and
+// `{key}-{lang}-dark.svg` (white, dark theme), each falling back to the
+// language-neutral `{key}.svg` / `{key}-dark.svg`. Without a file the footer shows
+// the short name as text, unless `textFallback={false}`.
+// Use only files from the ČVUT graphic manual (cvut.cz/logo-a-graficky-manual):
+// the logo is a registered trademark; do not redraw or recolour it.
+import { langFromPath, type Lang } from '../lib/i18n';
+import { externalLinkAttrs } from '../lib/links';
+import { externalLinks } from '../lib/site';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  // The caller sets display (flex, or e.g. hidden sm:flex).
+  variant?: 'header' | 'footer';
+  /** Footer: show the short name where a logo file is missing (default); false shows logos only. */
+  textFallback?: boolean;
+  class?: string;
+  lang?: Lang;
+}
+
+const { variant = 'header', textFallback = true, class: className, lang = langFromPath(Astro.url.pathname) } = Astro.props;
+const t = shellT(lang);
+
+const files = import.meta.glob<ImageMetadata>('../assets/logos/*.svg', { eager: true, import: 'default' });
+const logo = (name: string) => files[`../assets/logos/${name}.svg`];
+
+// Header: university first, then faculty, as the labels read. Footer: faculty
+// first, following the affiliation list above it (department, faculty, university).
+const keys = variant === 'header' ? (['cvut', 'fsv'] as const) : (['fsv', 'cvut'] as const);
+const items = keys
+  .map((key) => ({
+    href: externalLinks[key][lang],
+    name: t(key === 'fsv' ? 'org.faculty' : 'org.university'),
+    short: t(`header.${key}`),
+    light: variant === 'footer' ? (logo(`${key}-${lang}`) ?? logo(key)) : undefined,
+    dark: variant === 'footer' ? (logo(`${key}-${lang}-dark`) ?? logo(`${key}-dark`)) : undefined,
+  }))
+  .filter((item) => variant === 'header' || textFallback || item.light);
+---
+
+{
+  items.length > 0 && (
+    <ul class:list={['items-center', variant === 'header' ? 'gap-4 text-sm' : 'gap-8', className]}>
+      {items.map(({ href, name, short, light, dark }) => (
+        <li>
+          <a
+            href={href}
+            {...externalLinkAttrs(href)}
+            title={name}
+            class="block whitespace-nowrap text-muted-foreground transition-colors duration-200 hover:text-primary"
+          >
+            {light ? (
+              <>
+                <img
+                  src={light.src}
+                  width={light.width}
+                  height={light.height}
+                  alt={name}
+                  class:list={['h-14 w-auto', dark && 'dark:hidden']}
+                />
+                {dark && (
+                  <img
+                    src={dark.src}
+                    width={dark.width}
+                    height={dark.height}
+                    alt={name}
+                    class="hidden h-14 w-auto dark:block"
+                  />
+                )}
+              </>
+            ) : (
+              short
+            )}
+          </a>
+        </li>
+      ))}
+    </ul>
+  )
+}

@@ -1,0 +1,101 @@
+---
+// The ConEx site footer: group name and affiliation with the FSv and ČVUT logos, navigation, contact.
+// `contact` defaults to the group's PI (lib/site.ts); the site passes the synced people entry instead.
+import ConEx from './ConEx.astro';
+import ContactRow from './ContactRow.astro';
+import InstitutionLogos from './InstitutionLogos.astro';
+import PostalAddress from './PostalAddress.astro';
+import { langFromPath, localePath, type Lang } from '../lib/i18n';
+import { externalLinkAttrs } from '../lib/links';
+import { defaultContact, externalLinks, navItems, type Contact } from '../lib/site';
+import { shellT } from '../lib/strings';
+
+interface Props {
+  lang?: Lang;
+  contact?: Contact;
+}
+
+const { lang = langFromPath(Astro.url.pathname) } = Astro.props;
+const contact = Astro.props.contact ?? defaultContact[lang];
+const t = shellT(lang);
+
+const affiliation = [
+  { href: externalLinks.department[lang], label: t('org.department') },
+  { href: externalLinks.fsv[lang], label: t('org.faculty') },
+  { href: externalLinks.cvut[lang], label: t('org.university') },
+];
+const link = 'hover:text-primary hover:underline';
+---
+
+<footer class="mt-16 border-t border-border bg-muted text-sm text-muted-foreground">
+  <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:px-8 sm:grid-cols-2 lg:grid-cols-[3fr_2fr_3fr]">
+    <section aria-labelledby="footer-about">
+      <h2 id="footer-about" class="sr-only">{t('footer.about')}</h2>
+      <p class="font-semibold text-foreground"><ConEx text={t('site.name')} /></p>
+      <p class="mt-1">{t('site.fullName')}</p>
+      <ul class="mt-4 space-y-1">
+        {
+          affiliation.map(({ href, label }) => (
+            <li>
+              <a href={href} {...externalLinkAttrs(href)} class={link}>{label}</a>
+            </li>
+          ))
+        }
+      </ul>
+      {/* Logos only: the links above already name both institutions. */}
+      <InstitutionLogos variant="footer" textFallback={false} class="mt-6 flex flex-wrap" lang={lang} />
+    </section>
+
+    <nav aria-labelledby="footer-nav">
+      <h2 id="footer-nav" class="font-semibold text-foreground">{t('footer.navigation')}</h2>
+      <ul class="mt-2 space-y-1">
+        <li><a href={localePath(lang)} class={link}>{t('footer.home')}</a></li>
+        {
+          navItems.map(({ path, label }) => (
+            <li>
+              <a href={localePath(lang, path)} class={link}>{t(label)}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <section aria-labelledby="footer-contact" class="sm:col-span-2 lg:col-span-1">
+      <h2 id="footer-contact" class="font-semibold text-foreground">{t('footer.contact')}</h2>
+      <ul class="mt-2 space-y-2">
+        <ContactRow icon="user">
+          <a href={localePath(lang, contact.profilePath)} class:list={['font-medium text-foreground', link]}>{contact.name}</a>
+          <span class="block" lang={contact.roleLang ?? lang}>{contact.role}</span>
+        </ContactRow>
+        <ContactRow icon="mapPin" label={t('person.address')}>
+          <PostalAddress room={contact.room} lang={lang} />
+        </ContactRow>
+        {
+          contact.email && (
+            <ContactRow icon="mail" href={`mailto:${contact.email}`} label={t('person.email')}>
+              <span class="break-words transition-colors group-hover:text-primary group-hover:underline">{contact.email}</span>
+            </ContactRow>
+          )
+        }
+        {
+          contact.phone?.map((phone) => (
+            <ContactRow
+              icon="phone"
+              href={`tel:${phone.replace(/\s/g, '')}`}
+              label={t('person.phone')}
+            >
+              <span class="transition-colors group-hover:text-primary group-hover:underline">{phone}</span>
+            </ContactRow>
+          ))
+        }
+        {
+          contact.web && (
+            <ContactRow icon="globe" href={contact.web}>
+              <span class="transition-colors group-hover:text-primary group-hover:underline">{t('footer.personalWeb')}</span>
+            </ContactRow>
+          )
+        }
+      </ul>
+    </section>
+  </div>
+</footer>

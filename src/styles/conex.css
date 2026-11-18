@@ -1,0 +1,197 @@
+/*
+ * ConEx design tokens and the header/footer's global styles, shared by conex.fsv.cvut.cz and its apps.
+ * Use after Tailwind:  @import "tailwindcss";  @import "@conex-ctu/ui/conex.css";
+ * Components use the semantic names (bg-background, text-foreground, text-primary, ...), never raw palette
+ * values, so light and dark mode switch automatically. Change colours and fonts here only.
+ *
+ * PLACEHOLDER palette until the identity is decided with the PI.
+ * Font: Figtree, self-hosted via @fontsource-variable/figtree (ConexHead.astro loads it).
+ * Figtree is used for everything, numbers included; no separate mono font.
+ */
+
+/* Tailwind: also scan this package's components for classes (node_modules is not scanned by default). */
+@source "../components";
+
+/* `dark:` variant follows the data-theme attribute set in BaseLayout. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-ring: var(--ring);
+}
+
+@theme {
+  --font-sans:
+    "Figtree Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Motion: short and restrained (150-300 ms; photo zoom 500 ms); all of it is off under prefers-reduced-motion. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 150ms;
+  --default-transition-timing-function: var(--ease-out-soft);
+  --duration-page: 200ms;
+  --duration-reveal: 250ms;
+  /* Exception to the 300 ms cap: photo zoom on hover only. */
+  --duration-media: 500ms;
+  --stagger-step: 40ms;
+  --animate-enter: enter 250ms var(--ease-out-soft) both;
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+}
+
+:root {
+  color-scheme: light;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.21 0.006 286);
+  --muted: oklch(0.97 0.003 286);
+  --muted-foreground: oklch(0.48 0.012 286);
+  --border: oklch(0.91 0.004 286);
+  --primary: oklch(0.45 0.12 255);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.7 0.16 55);
+  --secondary-foreground: oklch(0.21 0.006 286);
+  --ring: var(--primary);
+}
+
+/* Dark values: used when the user or the system asks for dark. The second
+   selector covers visitors without JavaScript (no data-theme attribute). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: oklch(0.18 0.005 286);
+  --foreground: oklch(0.96 0 0);
+  --muted: oklch(0.23 0.006 286);
+  --muted-foreground: oklch(0.72 0.01 286);
+  --border: oklch(0.32 0.006 286);
+  --primary: oklch(0.76 0.11 250);
+  --primary-foreground: oklch(0.18 0.005 286);
+  --secondary: oklch(0.76 0.14 60);
+  --secondary-foreground: oklch(0.18 0.005 286);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --background: oklch(0.18 0.005 286);
+    --foreground: oklch(0.96 0 0);
+    --muted: oklch(0.23 0.006 286);
+    --muted-foreground: oklch(0.72 0.01 286);
+    --border: oklch(0.32 0.006 286);
+    --primary: oklch(0.76 0.11 250);
+    --primary-foreground: oklch(0.18 0.005 286);
+    --secondary: oklch(0.76 0.14 60);
+    --secondary-foreground: oklch(0.18 0.005 286);
+  }
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+/* --- Layout stability -------------------------------------------------- */
+
+/* Same width on short and long pages: always reserve the scrollbar's space. */
+html {
+  scrollbar-gutter: stable;
+  /* Keep anchor targets and focused elements clear of the sticky header
+     (one row: 69px below lg, 65px from lg) plus a little air. */
+  scroll-padding-top: 5.5rem;
+}
+
+/* In-page jumps (e.g. the publication categories) glide, unless motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* The theme toggle needs JavaScript; the head script sets data-theme before
+   the first paint, so with JS the button is there from the first frame. */
+:root:not([data-theme]) [data-theme-toggle] {
+  display: none;
+}
+
+/* Same for the mobile menu button; without JavaScript the menu panel is
+   shown in the header's flow instead, so the navigation is still there. */
+:root:not([data-theme]) [data-menu-button] {
+  display: none;
+}
+@media (width < 64rem) {
+  :root:not([data-theme]) [data-mobile-menu] {
+    position: static;
+    padding-bottom: 0;
+  }
+  :root:not([data-theme]) [data-menu-panel] {
+    visibility: visible;
+    opacity: 1;
+    translate: none;
+    box-shadow: none;
+  }
+  /* The header is then too tall to pin. */
+  :root:not([data-theme]) .site-header {
+    position: relative;
+  }
+}
+
+/* --- Motion ------------------------------------------------------------ */
+
+@layer base {
+  a,
+  button {
+    transition-property: color, text-decoration-color, border-color, background-color;
+    transition-duration: var(--default-transition-duration);
+    transition-timing-function: var(--default-transition-timing-function);
+  }
+}
+
+/* Cross-document view transitions (progressive enhancement): the page
+   crossfades, the header stays still and updates in place. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--duration-page);
+  animation-timing-function: var(--ease-out-soft);
+}
+
+.site-header {
+  view-transition-name: site-header;
+}
+
+::view-transition-old(site-header) {
+  display: none;
+}
+
+::view-transition-group(site-header),
+::view-transition-new(site-header) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@conex-ctu/ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ConEx header, footer and design tokens for conex.fsv.cvut.cz and its apps (Astro + Tailwind 4)",
   "type": "module",
   "private": true,
@@ -10,7 +10,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./components/*": "./src/components/*",
-    "./conex.css": "./src/styles/conex.css"
+    "./conex.css": "./src/styles/conex.css",
+    "./build": "./src/lib/build.ts"
   },
   "files": [
     "src"
